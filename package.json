@@ -1,0 +1,13 @@
+{
+  "name": "sicei-api",
+  "version": "1.0.0",
+  "description": "API REST de SICEI con alumnos y profesores",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+
