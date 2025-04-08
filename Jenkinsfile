@@ -3,27 +3,26 @@ pipeline {
 
     environment {
         DOCKER = '/usr/local/bin/docker'
+        CONTAINER = 'sicei-container'
     }
 
     stages {
         stage('Build') {
             steps {
                 script {
-                    // Docker esté disponible
-                    if (!sh(script: "command -v $DOCKER", returnStatus: true)) {
+                    def dockerExists = sh(script: "command -v $DOCKER", returnStatus: true) == 0
+                    if (!dockerExists) {
                         error "Docker no está instalado o no es accesible."
                     }
-                    
-                    // Detener y eliminar el contenedor si esta running
-                    def containerRunning = sh(script: "docker ps -q -f name=sicei-container", returnStdout: true).trim()
+
+                    def containerRunning = sh(script: "docker ps -q -f name=${env.CONTAINER}", returnStdout: true).trim()
                     if (containerRunning) {
-                        sh "docker stop sicei-container"
-                        sh "docker rm sicei-container"
+                        sh "docker stop ${env.CONTAINER}"
+                        sh "docker rm ${env.CONTAINER}"
                     }
-                    
-                    // Build
+
                     echo "Construyendo imagen con tag ${env.BUILD_ID}..."
-                    sh "docker build -t sicei-container:${env.BUILD_ID} ."
+                    sh "docker build -t ${env.CONTAINER}:${env.BUILD_ID} ."
                 }
             }
         }
@@ -31,9 +30,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Deploy
-                    echo "Desplegando el contenedor 'sicei-container'..."
-                    sh "docker run -d --name sicei-container -p 8000:8000 sicei-container:${env.BUILD_ID}"
+                    echo "Desplegando el contenedor '${env.CONTAINER}'..."
+                    sh "docker run -d --name ${env.CONTAINER} -p 8000:8000 ${env.CONTAINER}:${env.BUILD_ID}"
                 }
             }
         }
